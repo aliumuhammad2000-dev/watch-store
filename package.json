@@ -1,30 +1,23 @@
 {
-  "name": "watch-store",
+  "name": "hourlane-watches-monorepo",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "packageManager": "pnpm@12.3.4",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.3.3",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "react-icons": "^5.7.0",
-    "tailwindcss": "^4.3.3"
+    "dev": "pnpm --parallel -r run dev",
+    "dev:web": "pnpm --filter @hourlane/web run dev",
+    "dev:api": "pnpm --filter @hourlane/api run dev",
+    "build": "pnpm -r --if-present run build",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "lint": "pnpm -r --if-present run lint",
+    "test": "pnpm -r --if-present run test",
+    "db:generate": "pnpm --filter @hourlane/db run db:generate",
+    "db:migrate": "pnpm --filter @hourlane/db run db:migrate",
+    "db:push": "pnpm --filter @hourlane/db run db:push",
+    "db:studio": "pnpm --filter @hourlane/db run db:studio",
+    "db:seed": "pnpm --filter @hourlane/db run db:seed"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
-    "@vitejs/plugin-react": "^6.1.0",
-    "eslint": "^10.9.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.4",
-    "globals": "^17.11.0",
-    "vite": "^8.2.2"
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
   }
 }
