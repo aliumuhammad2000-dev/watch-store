@@ -155,7 +155,10 @@ export async function buildApp(customEnv?: Env) {
   // 9. Business Modules
   await app.register(deliveryRoutes);
   await app.register(catalogRoutes);
-  await app.register(adminRoutes);
+  await app.register(adminRoutes, {
+    paymentGateway,
+    webAppUrl: env.WEB_APP_URL,
+  });
   await app.register(orderRoutes, {
     paymentGateway,
     webAppUrl: env.WEB_APP_URL,

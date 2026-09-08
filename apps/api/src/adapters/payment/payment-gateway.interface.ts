@@ -23,7 +23,21 @@ export interface WebhookEvent {
   rawPayload: unknown;
 }
 
+export interface RefundParams {
+  reference: string;
+  amountKobo?: number;
+  merchantNote: string;
+}
+
+export interface RefundResult {
+  refundId: string;
+  status: "pending" | "processing" | "processed" | "failed";
+  amountKobo: number;
+  rawPayload?: unknown;
+}
+
 export interface PaymentGateway {
   createCheckout(params: CheckoutParams): Promise<CheckoutResult>;
   verifyWebhook(rawBody: string | Buffer, signature: string): Promise<WebhookEvent | null>;
+  initiateRefund(params: RefundParams): Promise<RefundResult>;
 }

@@ -36,4 +36,17 @@ export class MockPaymentGateway implements PaymentGateway {
     }
     return null;
   }
+
+  async initiateRefund(params: {
+    reference: string;
+    amountKobo?: number;
+    merchantNote: string;
+  }) {
+    return {
+      refundId: `mock_rf_${Date.now()}`,
+      status: "processed" as const,
+      amountKobo: params.amountKobo ?? 0,
+      rawPayload: { mock: true, reference: params.reference, note: params.merchantNote },
+    };
+  }
 }

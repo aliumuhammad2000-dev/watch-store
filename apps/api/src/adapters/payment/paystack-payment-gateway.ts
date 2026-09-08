@@ -93,4 +93,63 @@ export class PaystackPaymentGateway implements PaymentGateway {
       rawPayload: payload,
     };
   }
+
+  async initiateRefund(params: {
+    reference: string;
+    amountKobo?: number;
+    merchantNote: string;
+  }) {
+    const body: Record<string, unknown> = {
+      transaction: params.reference,
+      merchant_note: params.merchantNote,
+    };
+    if (params.amountKobo) {
+      body.amount = params.amountKobo;
+    }
+
+    const response = await fetch("https://api.paystack.co/refund", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${this.secretKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Paystack refund request failed: ${errorText}`);
+    }
+
+    const data = (await response.json()) as {
+      status: boolean;
+      message: string;
+      data: {
+        id: number | string;
+        status: string;
+        amount: number;
+        [key: string]: unknown;
+      };
+    };
+
+    if (!data.status) {
+      throw new Error(`Paystack refund rejected: ${data.message}`);
+    }
+
+    let normalizedStatus: "pending" | "processing" | "processed" | "failed" = "processing";
+    if (data.data.status === "processed") {
+      normalizedStatus = "processed";
+    } else if (data.data.status === "failed") {
+      normalizedStatus = "failed";
+    } else if (data.data.status === "pending") {
+      normalizedStatus = "pending";
+    }
+
+    return {
+      refundId: String(data.data.id),
+      status: normalizedStatus,
+      amountKobo: data.data.amount,
+      rawPayload: data,
+    };
+  }
 }

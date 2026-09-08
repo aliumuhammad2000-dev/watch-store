@@ -3,7 +3,7 @@ import { neon } from "@neondatabase/serverless";
 import * as schema from "./schema/index.js";
 
 export * from "./schema/index.js";
-export { eq, and, or, desc, asc, sql, not, inArray, count, sum } from "drizzle-orm";
+export { eq, and, or, desc, asc, sql, not, inArray, count, sum, ilike, like } from "drizzle-orm";
 
 export function createDb(databaseUrl: string) {
   const sql = neon(databaseUrl);
