@@ -196,5 +196,23 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
         };
       }
     );
+
+    // 6. View Outbox Messages
+    protectedRoutes.get(
+      "/api/v1/admin/outbox",
+      {
+        schema: {
+          summary: "List outbox background messages",
+          description:
+            "Returns recent outbox jobs and their dispatch status, attempts, and last error.",
+          tags: ["Admin"],
+          security: [{ bearerAuth: [] }],
+        },
+      },
+      async () => {
+        const messages = await adminService.getOutboxMessages();
+        return { messages };
+      }
+    );
   });
 };

@@ -80,3 +80,22 @@ export const ProductSchema = z.object({
 });
 
 export type Product = z.infer<typeof ProductSchema>;
+
+// Monetary & Currency Helpers
+export function koboToNgn(kobo: number): number {
+  return kobo / 100;
+}
+
+export function ngnToKobo(ngn: number): number {
+  return Math.round(ngn * 100);
+}
+
+export function formatKoboToNgn(kobo: number): string {
+  const ngn = koboToNgn(kobo);
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(ngn);
+}

@@ -7,6 +7,7 @@ import {
   deliveryZones,
   orders,
   inventoryAdjustments,
+  outboxMessages,
 } from "@hourlane/db";
 
 export interface CreateProductInput {
@@ -176,4 +177,13 @@ export class AdminService {
 
     return updatedProduct;
   }
+
+  async getOutboxMessages() {
+    return this.db
+      .select()
+      .from(outboxMessages)
+      .orderBy(desc(outboxMessages.createdAt))
+      .limit(20);
+  }
 }
+

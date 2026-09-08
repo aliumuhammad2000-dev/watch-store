@@ -22,6 +22,9 @@ import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { orderRoutes } from "./modules/orders/orders.routes.js";
 import { PaystackPaymentGateway } from "./adapters/payment/paystack-payment-gateway.js";
 import { MockPaymentGateway } from "./adapters/payment/mock-payment-gateway.js";
+import { ResendEmailSender } from "./adapters/email/resend-email-sender.js";
+import { MockEmailSender } from "./adapters/email/mock-email-sender.js";
+import { OutboxWorker } from "./workers/outbox-worker.js";
 
 export async function buildApp(customEnv?: Env) {
   const env = customEnv || loadEnv();
@@ -156,6 +159,23 @@ export async function buildApp(customEnv?: Env) {
   await app.register(orderRoutes, {
     paymentGateway,
     webAppUrl: env.WEB_APP_URL,
+  });
+
+  // 10. Transactional Email & PostgreSQL Outbox Worker
+  const isRealResendKey =
+    Boolean(env.RESEND_API_KEY) &&
+    !env.RESEND_API_KEY?.includes("...") &&
+    (env.RESEND_API_KEY?.length ?? 0) > 20;
+
+  const emailSender = isRealResendKey
+    ? new ResendEmailSender(env.RESEND_API_KEY!, env.EMAIL_FROM_ADDRESS)
+    : new MockEmailSender();
+
+  const outboxWorker = new OutboxWorker(app.db, emailSender, env.WEB_APP_URL);
+  outboxWorker.start(5000);
+
+  app.addHook("onClose", () => {
+    outboxWorker.stop();
   });
 
   return app;
