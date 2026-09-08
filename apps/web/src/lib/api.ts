@@ -117,6 +117,180 @@ export function formatKobo(kobo: number): string {
   return new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency: "NGN",
+    minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(naira);
+}
+
+// 5. Admin API Helpers
+export async function getAdminOverview(token: string) {
+  const res = await fetch(`${API_BASE}/api/v1/admin/overview`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error((await res.json()).message || "Unauthorized");
+  return res.json();
+}
+
+export async function getAdminOrders(
+  token: string,
+  params: { search?: string; status?: string; cityCode?: string; limit?: number; offset?: number } = {}
+) {
+  const query = new URLSearchParams();
+  if (params.search) query.set("search", params.search);
+  if (params.status && params.status !== "all") query.set("status", params.status);
+  if (params.cityCode) query.set("cityCode", params.cityCode);
+  if (params.limit) query.set("limit", String(params.limit));
+  if (params.offset) query.set("offset", String(params.offset));
+
+  const res = await fetch(`${API_BASE}/api/v1/admin/orders?${query.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error((await res.json()).message || "Failed to load orders");
+  return res.json();
+}
+
+export async function getAdminOrder(token: string, orderId: string) {
+  const res = await fetch(`${API_BASE}/api/v1/admin/orders/${orderId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error((await res.json()).message || "Order not found");
+  return res.json();
+}
+
+export async function updateAdminOrderStatus(
+  token: string,
+  orderId: string,
+  toStatus: string,
+  reason?: string
+) {
+  const res = await fetch(`${API_BASE}/api/v1/admin/orders/${orderId}/status`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ toStatus, reason }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to update order status");
+  return data;
+}
+
+export async function updateAdminOrderAddress(
+  token: string,
+  orderId: string,
+  address: {
+    streetAddress: string;
+    areaLocality: string;
+    landmark?: string;
+    deliveryNotes?: string;
+    reason: string;
+  }
+) {
+  const res = await fetch(`${API_BASE}/api/v1/admin/orders/${orderId}/address`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(address),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to update address");
+  return data;
+}
+
+export async function processAdminRefund(
+  token: string,
+  orderId: string,
+  reason: string
+) {
+  const res = await fetch(`${API_BASE}/api/v1/admin/orders/${orderId}/refund`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ reason, approve: true }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to process refund");
+  return data;
+}
+
+export async function adjustAdminProductStock(
+  token: string,
+  productId: string,
+  quantityDelta: number,
+  reason: string
+) {
+  const res = await fetch(
+    `${API_BASE}/api/v1/admin/products/${productId}/adjust-stock`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ quantityDelta, reason }),
+    }
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to adjust stock");
+  return data;
+}
+
+export async function toggleAdminProductPublish(
+  token: string,
+  productId: string,
+  isPublished: boolean
+) {
+  const res = await fetch(
+    `${API_BASE}/api/v1/admin/products/${productId}/publish`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ isPublished }),
+    }
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to toggle product status");
+  return data;
+}
+
+export async function getAdminDeliveryZones(token: string) {
+  const res = await fetch(`${API_BASE}/api/v1/admin/delivery-zones`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error((await res.json()).message || "Failed to load zones");
+  return res.json();
+}
+
+export async function updateAdminDeliveryZone(
+  token: string,
+  zoneId: string,
+  data: { feeKobo?: number; isActive?: boolean }
+) {
+  const res = await fetch(`${API_BASE}/api/v1/admin/delivery-zones/${zoneId}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || "Failed to update zone");
+  return json;
+}
+
+export async function getAdminOutbox(token: string) {
+  const res = await fetch(`${API_BASE}/api/v1/admin/outbox`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error((await res.json()).message || "Failed to load outbox");
+  return res.json();
 }
